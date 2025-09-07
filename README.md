@@ -55,7 +55,7 @@ This repository unifies the configurations and drivers necessary to run Linux on
 
 ```bash
 # 1. Download the project
-git clone https://github.com/your-username/samsung-galaxybook-linux-unified.git
+git clone https://github.com/Huttysam/samsung-galaxybook-linux-unified.git
 cd samsung-galaxybook-linux-unified
 
 # 2. Run installation script
@@ -436,11 +436,6 @@ This project unifies and expands the work of the following repositories:
 ### **Licensing**
 This project maintains the same MIT license as the original repositories and acknowledges all copyrights of the original works.
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/samsung-galaxybook-linux-unified/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/samsung-galaxybook-linux-unified/discussions)
-- **Wiki**: [Complete Documentation](https://github.com/your-username/samsung-galaxybook-linux-unified/wiki)
 
 ---
 

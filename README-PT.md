@@ -55,7 +55,7 @@ Este repositório unifica as configurações e drivers necessários para executa
 
 ```bash
 # 1. Baixar o projeto
-git clone https://github.com/seu-usuario/samsung-galaxybook-linux-unified.git
+git clone https://github.com/Huttysam/samsung-galaxybook-linux-unified.git
 cd samsung-galaxybook-linux-unified
 
 # 2. Executar script de instalação
@@ -75,17 +75,23 @@ Siga os passos detalhados na seção [Instalação Manual](#-instalação-manual
 Após a instalação, verifique se tudo está funcionando:
 
 ```bash
-# Verificar GPU Intel
+# Verificar GPU Intel e drivers
 ./verify-gpu.sh
 
-# Verificar dispositivos OpenCL
+# Verificar dispositivos OpenCL (deve mostrar GPU Intel)
 clinfo | grep "Device Name"
 
-# Verificar drivers de mídia
+# Verificar drivers de mídia (deve mostrar driver Intel media)
 vainfo
 
-# Verificar impressão digital
+# Verificar impressão digital (deve mostrar dispositivo Egis)
 lsusb | grep "1c7a:0582"
+
+# Verificar áudio (deve mostrar Realtek ALC298)
+aplay -l | grep "ALC298"
+
+# Verificar configuração do teclado
+systemd-hwdb query | grep "samsung-galaxybook"
 ```
 
 ## 📖 Instalação Manual
@@ -263,8 +269,11 @@ sudo reboot
 # Executar script de ativação
 ./sound/necessary-verbs.sh
 
-# Ou usar o comando simplificado
-samsung-audio-fix
+# Ou executar scripts individuais de alto-falantes se necessário
+./sound/init-back-left.sh
+./sound/init-back-right.sh
+./sound/init-front-left.sh
+./sound/init-front-right.sh
 ```
 
 ### Problema: Brilho da tela não controla
@@ -297,12 +306,15 @@ lsusb -v | grep -A 5 -B 5 "1c7a:0582"
 
 **Solução**:
 ```bash
-# Adicionar parâmetros específicos para dock
+# Verificar se os parâmetros já estão presentes
+grep "i915.enable_dp_mst\|i915.enable_psr2_sel_fetch" /etc/default/grub
+
+# Se não encontrados, adicionar parâmetros específicos para dock
 sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/&i915.enable_dp_mst=0 i915.enable_psr2_sel_fetch=1 /' /etc/default/grub
 sudo update-grub
 sudo reboot
 
-# Conectar dock ANTES de ligar o notebook
+# Importante: Conectar dock ANTES de ligar o notebook
 ```
 
 ### Problema: GPU Intel não detectada
@@ -348,32 +360,55 @@ sudo apt-get install --reinstall intel-media-va-driver-non-free
 samsung-galaxybook-linux-unified/
 ├── install.sh                          # Script de instalação automatizada
 ├── verify-gpu.sh                       # Script de verificação de GPU
-├── README.md                           # Este arquivo
+├── README.md                           # Este arquivo (Português)
+├── README-PT.md                        # Versão em português (alternativa)
 ├── LICENSE                             # Licença MIT
 ├── 61-keyboard-samsung-galaxybook.hwdb # Configuração do teclado
 ├── dsdt/                               # Arquivos DSDT para diferentes modelos
-│   ├── NP750XFH-dsdt.dsl
-│   ├── NP750XGJ-dsdt.dsl
-│   ├── NP950QDB-dsdt.dsl
-│   ├── NP950XCJ-dsdt.dsl
-│   ├── NP950XDB-dsdt.dsl
-│   ├── NP950XED-dsdt.dsl
-│   └── NP960XFH-dsdt.dsl
+│   ├── NP750XFH-dsdt.dsl              # Galaxy Book Pro 360 (13.3")
+│   ├── NP750XGJ-dsdt.dsl              # Galaxy Book Pro (13.3")
+│   ├── NP950QDB-dsdt.dsl              # Galaxy Book2 Pro (15.6")
+│   ├── NP950XCJ-dsdt.dsl              # Galaxy Book2 Pro 360 (15.6")
+│   ├── NP950XDB-dsdt.dsl              # Galaxy Book2 Pro (15.6")
+│   ├── NP950XED-dsdt.dsl              # Galaxy Book2 Pro (13.3")
+│   └── NP960XFH-dsdt.dsl              # Galaxy Book3 Pro 360 (13.3")
 ├── fingerprint/                        # Configurações de impressão digital
-│   ├── egismoc-1c7a-0582.py
-│   ├── egismoc-1c7a-05a5.py
-│   ├── egismoc-sdcp-1c7a-0582.py
-│   ├── libfprint.md
-│   └── readme.md
+│   ├── egismoc-1c7a-0582.py           # Driver Egis MOC (principal)
+│   ├── egismoc-1c7a-05a5.py           # Driver Egis MOC (alternativo)
+│   ├── egismoc-sdcp-1c7a-0582.py      # Driver Egis MOC SDCP
+│   ├── libfprint.md                   # Documentação libfprint
+│   └── readme.md                      # Guia de configuração de impressão digital
 ├── sound/                              # Scripts e configurações de áudio
-│   ├── necessary-verbs.sh              # Script principal de áudio
-│   ├── init-*.sh                       # Scripts de inicialização
-│   ├── *-on.sh / *-off.sh              # Scripts de controle
-│   └── qemu/                           # Ferramentas de desenvolvimento
+│   ├── necessary-verbs.sh              # Script principal de ativação de áudio
+│   ├── init-back-left.sh              # Inicialização alto-falante traseiro esquerdo
+│   ├── init-back-right.sh             # Inicialização alto-falante traseiro direito
+│   ├── init-front-left.sh             # Inicialização alto-falante frontal esquerdo
+│   ├── init-front-right.sh            # Inicialização alto-falante frontal direito
+│   ├── init-initial-coef-values.sh    # Valores iniciais de coeficientes
+│   ├── back-left-on.sh                # Alto-falante traseiro esquerdo ligado
+│   ├── back-left-off.sh               # Alto-falante traseiro esquerdo desligado
+│   ├── back-right-on.sh               # Alto-falante traseiro direito ligado
+│   ├── back-right-off.sh              # Alto-falante traseiro direito desligado
+│   ├── front-left-on.sh               # Alto-falante frontal esquerdo ligado
+│   ├── front-left-off.sh              # Alto-falante frontal esquerdo desligado
+│   ├── front-right-on.sh              # Alto-falante frontal direito ligado
+│   ├── front-right-off.sh             # Alto-falante frontal direito desligado
+│   ├── RtHDDump.txt                   # Dump Realtek HD Audio
+│   ├── startvm-events.txt             # Log de eventos da VM
+│   ├── startvm.sh                     # Script de inicialização da VM
+│   ├── vfio-bind.sh                   # Script de vinculação VFIO
+│   └── qemu/                          # Ferramentas de desenvolvimento QEMU
+│       ├── hda-verb-log-to-csv.py     # Conversor de log HDA verb
+│       ├── vfio-common.patch          # Patch VFIO comum
+│       └── hw/                        # Definições de hardware
+│           └── vfio/
+│               └── common.c           # Código comum VFIO
 └── wmi/                                # Configurações WMI
-    ├── DSDT.aml
-    ├── DSDT.dsl
-    └── *.bmf                           # Arquivos de firmware
+    ├── DSDT.aml                       # Arquivo DSDT binário
+    ├── DSDT.dsl                       # Arquivo DSDT fonte
+    ├── SWSD.bmf                       # Firmware SWSD
+    ├── WFDE.bmf                       # Firmware WFDE
+    └── WFTE.bmf                       # Firmware WFTE
 ```
 
 ## 🤝 Contribuição
@@ -437,9 +472,9 @@ Este projeto mantém a mesma licença MIT dos repositórios originais e reconhec
 
 ## 📞 Suporte
 
-- **Issues**: [GitHub Issues](https://github.com/seu-usuario/samsung-galaxybook-linux-unified/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/seu-usuario/samsung-galaxybook-linux-unified/discussions)
-- **Wiki**: [Documentação Completa](https://github.com/seu-usuario/samsung-galaxybook-linux-unified/wiki)
+- **Issues**: [GitHub Issues](https://github.com/Huttysam/samsung-galaxybook-linux-unified/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Huttysam/samsung-galaxybook-linux-unified/discussions)
+- **Wiki**: [Documentação Completa](https://github.com/Huttysam/samsung-galaxybook-linux-unified/wiki)
 
 ---
 

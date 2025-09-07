@@ -470,6 +470,11 @@ This project unifies and expands the work of the following repositories:
 ### **Licensing**
 This project maintains the same MIT license as the original repositories and acknowledges all copyrights of the original works.
 
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/Huttysam/samsung-galaxybook-linux-unified/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Huttysam/samsung-galaxybook-linux-unified/discussions)
+- **Wiki**: [Complete Documentation](https://github.com/Huttysam/samsung-galaxybook-linux-unified/wiki)
 
 ---
 

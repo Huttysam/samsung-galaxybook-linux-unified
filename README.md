@@ -75,17 +75,23 @@ Follow the detailed steps in the [Manual Installation](#-manual-installation) se
 After installation, verify everything is working:
 
 ```bash
-# Verify Intel GPU
+# Verify Intel GPU and drivers
 ./verify-gpu.sh
 
-# Verify OpenCL devices
+# Verify OpenCL devices (should show Intel GPU)
 clinfo | grep "Device Name"
 
-# Verify media drivers
+# Verify media drivers (should show Intel media driver)
 vainfo
 
-# Verify fingerprint reader
+# Verify fingerprint reader (should show Egis device)
 lsusb | grep "1c7a:0582"
+
+# Verify audio (should show Realtek ALC298)
+aplay -l | grep "ALC298"
+
+# Verify keyboard configuration
+systemd-hwdb query | grep "samsung-galaxybook"
 ```
 
 ## 📖 Manual Installation
@@ -263,8 +269,11 @@ sudo reboot
 # Run activation script
 ./sound/necessary-verbs.sh
 
-# Or use simplified command
-samsung-audio-fix
+# Or run individual speaker scripts if needed
+./sound/init-back-left.sh
+./sound/init-back-right.sh
+./sound/init-front-left.sh
+./sound/init-front-right.sh
 ```
 
 ### Problem: Screen brightness not controlling
@@ -334,12 +343,15 @@ lsusb -v | grep -A 5 -B 5 "1c7a:0582"
 
 **Solution**:
 ```bash
-# Add specific dock parameters
+# Check if parameters are already present
+grep "i915.enable_dp_mst\|i915.enable_psr2_sel_fetch" /etc/default/grub
+
+# If not found, add specific dock parameters
 sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/&i915.enable_dp_mst=0 i915.enable_psr2_sel_fetch=1 /' /etc/default/grub
 sudo update-grub
 sudo reboot
 
-# Connect dock BEFORE turning on the notebook
+# Important: Connect dock BEFORE turning on the notebook
 ```
 
 ## 📁 Project Structure
@@ -349,32 +361,54 @@ samsung-galaxybook-linux-unified/
 ├── install.sh                          # Automated installation script
 ├── verify-gpu.sh                       # GPU verification script
 ├── README.md                           # This file (Portuguese)
-├── README-EN.md                        # English version
+├── README-PT.md                        # Portuguese version (alternative)
 ├── LICENSE                             # MIT License
 ├── 61-keyboard-samsung-galaxybook.hwdb # Keyboard configuration
 ├── dsdt/                               # DSDT files for different models
-│   ├── NP750XFH-dsdt.dsl
-│   ├── NP750XGJ-dsdt.dsl
-│   ├── NP950QDB-dsdt.dsl
-│   ├── NP950XCJ-dsdt.dsl
-│   ├── NP950XDB-dsdt.dsl
-│   ├── NP950XED-dsdt.dsl
-│   └── NP960XFH-dsdt.dsl
+│   ├── NP750XFH-dsdt.dsl              # Galaxy Book Pro 360 (13.3")
+│   ├── NP750XGJ-dsdt.dsl              # Galaxy Book Pro (13.3")
+│   ├── NP950QDB-dsdt.dsl              # Galaxy Book2 Pro (15.6")
+│   ├── NP950XCJ-dsdt.dsl              # Galaxy Book2 Pro 360 (15.6")
+│   ├── NP950XDB-dsdt.dsl              # Galaxy Book2 Pro (15.6")
+│   ├── NP950XED-dsdt.dsl              # Galaxy Book2 Pro (13.3")
+│   └── NP960XFH-dsdt.dsl              # Galaxy Book3 Pro 360 (13.3")
 ├── fingerprint/                        # Fingerprint reader configurations
-│   ├── egismoc-1c7a-0582.py
-│   ├── egismoc-1c7a-05a5.py
-│   ├── egismoc-sdcp-1c7a-0582.py
-│   ├── libfprint.md
-│   └── readme.md
+│   ├── egismoc-1c7a-0582.py           # Egis MOC driver (main)
+│   ├── egismoc-1c7a-05a5.py           # Egis MOC driver (alternative)
+│   ├── egismoc-sdcp-1c7a-0582.py      # Egis MOC SDCP driver
+│   ├── libfprint.md                   # libfprint documentation
+│   └── readme.md                      # Fingerprint setup guide
 ├── sound/                              # Audio scripts and configurations
-│   ├── necessary-verbs.sh              # Main audio script
-│   ├── init-*.sh                       # Initialization scripts
-│   ├── *-on.sh / *-off.sh              # Control scripts
-│   └── qemu/                           # Development tools
+│   ├── necessary-verbs.sh              # Main audio activation script
+│   ├── init-back-left.sh              # Back left speaker init
+│   ├── init-back-right.sh             # Back right speaker init
+│   ├── init-front-left.sh             # Front left speaker init
+│   ├── init-front-right.sh            # Front right speaker init
+│   ├── init-initial-coef-values.sh    # Initial coefficient values
+│   ├── back-left-on.sh                # Back left speaker on
+│   ├── back-left-off.sh               # Back left speaker off
+│   ├── back-right-on.sh               # Back right speaker on
+│   ├── back-right-off.sh              # Back right speaker off
+│   ├── front-left-on.sh               # Front left speaker on
+│   ├── front-left-off.sh              # Front left speaker off
+│   ├── front-right-on.sh              # Front right speaker on
+│   ├── front-right-off.sh             # Front right speaker off
+│   ├── RtHDDump.txt                   # Realtek HD Audio dump
+│   ├── startvm-events.txt             # VM events log
+│   ├── startvm.sh                     # VM startup script
+│   ├── vfio-bind.sh                   # VFIO binding script
+│   └── qemu/                          # QEMU development tools
+│       ├── hda-verb-log-to-csv.py     # HDA verb log converter
+│       ├── vfio-common.patch          # VFIO common patch
+│       └── hw/                        # Hardware definitions
+│           └── vfio/
+│               └── common.c           # VFIO common code
 └── wmi/                                # WMI configurations
-    ├── DSDT.aml
-    ├── DSDT.dsl
-    └── *.bmf                           # Firmware files
+    ├── DSDT.aml                       # DSDT binary file
+    ├── DSDT.dsl                       # DSDT source file
+    ├── SWSD.bmf                       # SWSD firmware
+    ├── WFDE.bmf                       # WFDE firmware
+    └── WFTE.bmf                       # WFTE firmware
 ```
 
 ## 🤝 Contributing
